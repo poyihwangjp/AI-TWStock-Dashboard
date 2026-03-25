@@ -33,7 +33,7 @@ api_key = st.sidebar.text_input("請輸入 Gemini API Key (選填)", type="passw
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🔒 獨家付費情報")
-st.sidebar.write("可直接貼上文字，或將大叔的文章存成 PDF 上傳")
+st.sidebar.write("可直接貼上文字，或將付費的文章存成 PDF 上傳")
 kol_text = st.sidebar.text_area("請貼上文字段落 (選填)", height=100)
 kol_pdf = st.sidebar.file_uploader("📄 匯入完整文章 (PDF)", type=['pdf'])
 
@@ -44,8 +44,8 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("🌐 社群與論壇動態追蹤 (RSS)")
 
 # 💡 在 value=" " 裡面的引號中間，貼上你轉換好的 RSS 網址
-rss_url = st.sidebar.text_input("KOL 追蹤 (如財報狗)", value="https://rss.app/feeds/_CJuuhZbwqjL7PDBL.xml")
-ceo_rss_url = st.sidebar.text_input("市場情緒與重訊 (如 Google快訊)", value="")
+rss_url = st.sidebar.text_input("KOL 追蹤 (如財報狗/萬鈞 FB)", value="https://rss.app/feeds/_CJuuhZbwqjL7PDBL.xml")
+ceo_rss_url = st.sidebar.text_input("市場情緒與重訊 (如 PTT股板/Google快訊)", value="")
 
 
 # ==========================================
