@@ -41,11 +41,11 @@ if kol_pdf:
     st.sidebar.success("✅ PDF 檔案已載入，準備交由 AI 研讀！")
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("🌐 社群動態追蹤 (RSS)")
+st.sidebar.subheader("🌐 社群與論壇動態追蹤 (RSS)")
 
 # 💡 在 value=" " 裡面的引號中間，貼上你轉換好的 RSS 網址
-rss_url = st.sidebar.text_input("KOL 追蹤 (如分析師FB)", value="")
-ceo_rss_url = st.sidebar.text_input("公司動態追蹤 (如官方粉專)", value="")
+rss_url = st.sidebar.text_input("KOL 追蹤 (如財報狗)", value="https://rss.app/feeds/_CJuuhZbwqjL7PDBL.xml")
+ceo_rss_url = st.sidebar.text_input("市場情緒與重訊 (如 Google快訊)", value="")
 
 
 # ==========================================
