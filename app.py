@@ -20,6 +20,9 @@ st.title("📈 專屬 AI 台股分析儀表板")
 st.sidebar.header("設定區")
 st.sidebar.markdown("**💡 提示：上市請加 .TW (如 2330.TW)，上櫃加 .TWO (如 3293.TWO)**")
 ticker_symbol = st.sidebar.text_input("請輸入台股代碼", value="2330.TW").upper()
+
+# --- 👇 新增這行：讓系統也認得中文名字 ---
+company_name = st.sidebar.text_input("請輸入公司簡稱 (用於精準抓取新聞)", value="台積電")
 time_period = st.sidebar.selectbox("選擇 K 線圖時間範圍", ["1mo", "3mo", "6mo", "1y", "ytd"])
 
 # --- 圖表顯示開關 ---
@@ -297,7 +300,11 @@ else:
                             clean_text = re.sub('<[^<]+>', '', entry.summary)
                             # 台股代碼通常包含 .TW，這裡防呆過濾一下純數字
                             base_ticker = ticker_symbol.split('.')[0]
-                            if base_ticker in clean_text or ticker_symbol.lower() in clean_text.lower() or base_ticker in entry.title:
+                            # 只要文章有提到「2330」或是「台積電」，通通抓進來！
+                            if (base_ticker in clean_text or 
+                                base_ticker in entry.title or 
+                                (company_name and company_name in clean_text) or 
+                                (company_name and company_name in entry.title)):
                                 date_str = entry_date.strftime('%Y-%m-%d')
                                 title = entry.title if hasattr(entry, 'title') else "無標題動態"
                                 target_texts.append(f"【發布日期：{date_str}】\n{clean_text[:2000]}")
