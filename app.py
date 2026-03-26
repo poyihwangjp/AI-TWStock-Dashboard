@@ -14,6 +14,12 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="AI 台股分析儀表板", layout="wide")
 st.title("📈 專屬 AI 台股分析儀表板")
 
+# --- 👇 新增：初始化網頁記憶體 (Session State) ---
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+if "last_ticker" not in st.session_state:
+    st.session_state.last_ticker = ""
+
 # ==========================================
 # 2. 側邊欄設定 (Sidebar)
 # ==========================================
@@ -24,6 +30,11 @@ ticker_symbol = st.sidebar.text_input("請輸入台股代碼", value="2330.TW").
 # --- 👇 新增這行：讓系統也認得中文名字 ---
 company_name = st.sidebar.text_input("請輸入公司簡稱 (用於精準抓取新聞)", value="台積電")
 time_period = st.sidebar.selectbox("選擇 K 線圖時間範圍", ["1mo", "3mo", "6mo", "1y", "ytd"])
+
+# --- 👇 新增：如果切換了股票，就自動清空前一檔股票的對話紀錄 ---
+if ticker_symbol != st.session_state.last_ticker:
+    st.session_state.chat_history = []
+    st.session_state.last_ticker = ticker_symbol
 
 # --- 圖表顯示開關 ---
 st.sidebar.markdown("---")
@@ -363,10 +374,12 @@ else:
             except Exception as e:
                 st.error("讀取官方社群失敗，請確認 RSS 網址是否正確。")
 
-    with col_ai:
-        st.write("**Gemini 綜合戰略分析**")
+with col_ai:
+        st.write("**🤖 Gemini 綜合戰略分析與專屬助理**")
         if api_key:
             genai.configure(api_key=api_key)
+            
+            # --- 1. 生成全新報告按鈕 ---
             if st.button("✨ 點我生成 AI 戰略報告", use_container_width=True):
                 try:
                     available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
@@ -386,7 +399,6 @@ else:
                         kol_context_str = f"\n\n【獨家付費情報 (文字/PDF)】：\n{kol_text}" if kol_text else ""
                         fb_context_str = f"\n\n【公開社群動態 (歷史軌跡)】：\n{fb_intel_text}" if fb_intel_text else ""
                         
-                        # 台股版專屬 Prompt
                         prompt = f"""你是一位頂尖的台股量化分析師。
 請根據 {ticker_symbol} 的最新全方位數據與情報進行深度綜合判斷：
 
@@ -396,21 +408,15 @@ else:
 - RSI (14)：{latest_rsi:.2f} (若大於70為超買，小於30為超賣)
 - MACD 快線：{latest_macd:.2f} / 慢線：{latest_signal:.2f}
 
-【最新新聞與官方公告】：
+【最新新聞與社群情報】：
 {news_text}
 {kol_context_str}
 {fb_context_str}
 
 請撰寫一份專業的綜合戰略報告，嚴格按照以下「三個區塊」結構化輸出，並使用繁體中文（台灣）：
-
 ### 1. 📈 技術面診斷
-請觀察「最新收盤價」與「布林通道上下軌」的相對位置（是否突破上軌過熱，或回測下軌尋求支撐），並結合 RSI、MACD 的現況判斷目前的台股技術趨勢強弱。
-
 ### 2. 📰 基本面與社群情報提煉
-綜合國內外新聞，以及大叔/公司高層等重要人物的獨家社群觀點，提煉出推動該檔股票的核心基本面邏輯。
-
 ### 3. 🎯 全局戰略綜合決策
-將上述的技術面、基本面與人物情報完美融合，給出客觀且具體的短線觀察重點與操作建議。
 """
                         loading_msg = f'系統已自動鎖定 {model_name}，正在為您整合情報...'
                         if kol_pdf is not None:
@@ -419,19 +425,50 @@ else:
                         with st.spinner(loading_msg):
                             contents = [prompt]
                             if kol_pdf is not None:
-                                pdf_data = {
-                                    "mime_type": "application/pdf",
-                                    "data": kol_pdf.getvalue()
-                                }
+                                pdf_data = {"mime_type": "application/pdf", "data": kol_pdf.getvalue()}
                                 contents.append(pdf_data)
                                 
                             response = model.generate_content(contents)
-                            st.info(response.text.replace('$', r'\$'))
+                            # 🚀 關鍵：生成完畢後，把報告「存入記憶體」作為第一條歷史訊息
+                            st.session_state.chat_history = [{"role": "model", "content": response.text.replace('$', r'\$')}]
                             
                 except Exception as e:
                     st.error(f"API 呼叫失敗: {e}")
-            else:
-                st.write("👈 請確認左側設定完畢後，點擊上方按鈕生成報告。")
+
+            # --- 2. 顯示對話歷史紀錄 (包含剛生成的報告與後續追問) ---
+            for msg in st.session_state.chat_history:
+                role_icon = "🤖" if msg["role"] == "model" else "👤"
+                with st.chat_message(msg["role"], avatar=role_icon):
+                    st.markdown(msg["content"])
+
+            # --- 3. 聊天追問輸入框 ---
+            if user_question := st.chat_input("對上述報告有疑問嗎？請直接發問..."):
+                if not st.session_state.chat_history:
+                    st.warning("👈 請先點擊上方「生成 AI 戰略報告」，才能進行追問喔！")
+                else:
+                    # 顯示並儲存使用者的問題
+                    st.session_state.chat_history.append({"role": "user", "content": user_question})
+                    with st.chat_message("user", avatar="👤"):
+                        st.markdown(user_question)
+
+                    # 呼叫 Gemini 進行多輪對話 (帶入歷史記憶)
+                    with st.chat_message("model", avatar="🤖"):
+                        with st.spinner("思考中..."):
+                            try:
+                                available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                                model_name = next((m for m in available_models if 'flash' in m or 'pro' in m), available_models[0])
+                                model = genai.GenerativeModel(model_name)
+                                
+                                # 組合 API 要求的對話歷史格式
+                                history_for_gemini = [{"role": m["role"], "parts": [m["content"]]} for m in st.session_state.chat_history[:-1]]
+                                
+                                chat = model.start_chat(history=history_for_gemini)
+                                response = chat.send_message(user_question)
+                                
+                                st.markdown(response.text.replace('$', r'\$'))
+                                st.session_state.chat_history.append({"role": "model", "content": response.text.replace('$', r'\$')})
+                            except Exception as e:
+                                st.error(f"追問失敗: {e}")
         else:
             st.warning("⚠️ 請在左側輸入 Gemini API Key 以啟動 AI 自動分析功能。")
 
