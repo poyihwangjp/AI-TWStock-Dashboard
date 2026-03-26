@@ -54,8 +54,9 @@ if kol_pdf:
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌐 社群與論壇動態追蹤 (RSS)")
-rss_url = st.sidebar.text_input("KOL 追蹤 (如財報狗 FB)", value="")
-ceo_rss_url = st.sidebar.text_input("市場情緒與重訊 (如 PTT/Google快訊)", value="")
+rss_url = st.sidebar.text_input("KOL 追蹤 (如財報狗/萬鈞 FB)", value="https://rss.app/feeds/_CJuuhZbwqjL7PDBL.xml")
+ceo_rss_url = st.sidebar.text_input("市場情緒與重訊 (如 PTT股板/Google快訊)", value="https://rss.app/feeds/_iZRU20OK4eLQh6k7.xml")
+
 
 # ==========================================
 # 3. 獲取市場數據 (yahooquery 完美相容版)
