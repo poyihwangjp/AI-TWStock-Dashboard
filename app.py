@@ -48,7 +48,7 @@ st.sidebar.subheader("🌐 社群與論壇動態追蹤 (RSS)")
 
 # 💡 在 value=" " 裡面的引號中間，貼上你轉換好的 RSS 網址
 rss_url = st.sidebar.text_input("KOL 追蹤 (如財報狗/萬鈞 FB)", value="https://rss.app/feeds/_CJuuhZbwqjL7PDBL.xml")
-ceo_rss_url = st.sidebar.text_input("市場情緒與重訊 (如 PTT股板/Google快訊)", value="")
+ceo_rss_url = st.sidebar.text_input("市場情緒與重訊 (如 PTT股板/Google快訊)", value="https://rss.app/feeds/_iZRU20OK4eLQh6k7.xml")
 
 
 # ==========================================
